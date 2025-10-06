@@ -15,7 +15,7 @@ This tool-agnostic approach shifts security left, helping teams identify vulnera
 ## Architecture
 The framework uses Smithy Security for orchestration. See the sequence flow below (rendered from `docs/sequence.puml`):
 
-![Sequence Diagram](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/aksaha9/APIGEESast/main/docs/sequence.puml)
+![Sequence Diagram](https://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/aksaha9/APIGEESast/master/docs/sequence.puml)
 
 High-level components:
 - **Git Clone**: Pulls the Apigee bundle from a provided repo URL.
