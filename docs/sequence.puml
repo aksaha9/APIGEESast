@@ -1,0 +1,41 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 150
+
+participant "CI Trigger" as CI
+participant "Smithy Orchestrator" as Smithy
+participant "GitHub Repo" as Repo
+participant "apigeelint Scanner" as Lint
+participant "Java Extractor" as JavaExt
+participant "Checkmarx (Cx) Scan" as Cx
+participant "Report Aggregator" as Agg
+participant "Security Dashboard" as Dash
+
+== Repo Access ==
+CI -> Smithy: 1. Invoke SAST Stage (Provide GitHub Repo URL)
+Smithy -> Repo: 2. Clone Repo (git clone <repo-url>)
+
+== XML Lint Scan ==
+Smithy -> Lint: 3. Run apigeelint (on /apiproxy folder)
+Lint --> Smithy: 4. Raw Lint Results (JSON or SARIF)
+
+== Conditional Java Scan ==
+alt [Java Artifacts Detected?]
+    Smithy -> JavaExt: 6. Find Java Files (/resources/java/*.jar)
+    JavaExt --> Smithy: 
+    Smithy -> Cx: 7. Submit Java Code & Scan (API: POST /scans, GET /reports)
+    Cx --> Smithy: 8. Raw Cx Results (SARIF or JSON)
+else [No Java]
+    Smithy -> Smithy: 9. Skip Cx
+end
+
+== Aggregation & Gate ==
+Smithy -> Agg: 10. Merge SARIF Files (lint.sarif + cx.sarif -> unified.sarif)
+Agg --> Smithy: 11. Unified SARIF Report (Severity: High/Med/Low)
+Smithy -> CI: 12. Return Status & SARIF (Fail if High Sev > Threshold)
+
+== Notification ==
+CI -> Dash: 13. Publish SARIF Report (Email/Slack + DefectDojo/GitHub)
+Smithy -> Dash: Orchestration Logic: \n- Transform outputs to SARIF \n- Validate repo structure \n- Parallel scans for speed \n- Retry on tool failures
+@enduml
