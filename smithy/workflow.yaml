@@ -1,0 +1,37 @@
+name: apigee-sast
+description: SAST for Apigee bundles
+steps:
+  - name: clone-repo
+    tool: git-clone
+    params:
+      repo_url: ${{ input.repo_url }}
+      output_dir: /workspace/repo
+  - name: detect-java
+    tool: python
+    script: detect_java.py
+    depends_on: clone-repo
+    params:
+      repo_dir: /workspace/repo
+      output_file: /workspace/has_java.json
+  - name: apigeelint-scan
+    tool: apigeelint
+    script: run_apigeelint.sh
+    depends_on: clone-repo
+    params:
+      bundle_dir: /workspace/repo/apiproxy
+      output: /workspace/lint.json  # Changed to .json
+  - name: cx-scan
+    tool: checkmarx
+    script: run_cx_scan.sh
+    depends_on: detect-java
+    condition: has_java == true
+    params:
+      java_dir: /workspace/repo/resources/java
+      output: /workspace/cx.sarif
+  - name: aggregate-reports
+    tool: python
+    script: aggregate_sarif.py
+    depends_on: [apigeelint-scan, cx-scan]
+    params:
+      inputs: [/workspace/lint.json, /workspace/cx.sarif]
+      output: /workspace/unified.sarif

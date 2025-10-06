@@ -1,0 +1,4 @@
+scan:
+  languages: [JAVA]
+  exclude_folders: [target, build]
+  severity_threshold: HIGH

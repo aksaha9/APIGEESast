@@ -1,0 +1,12 @@
+name: Apigee SAST
+on: [push]
+jobs:
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: docker build -t apigeelint:latest -f apigeelint/Dockerfile apigeelint/
+    - run: python orchestrate.py --repo-url ${{ github.repositoryUrl }}
+    - uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: unified.sarif
